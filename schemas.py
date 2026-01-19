@@ -1,7 +1,7 @@
-from pydantic import BaseModel, EmailStr, Field, validator
+from datetime import datetime
 from typing import Optional, List, Any
-from datetime import datetime, time
-from decimal import Decimal
+
+from pydantic import BaseModel, EmailStr, Field
 
 
 #BASIS CLASSES
@@ -29,6 +29,11 @@ class ProductBase(BaseModel):
     carbs: int = Field(..., ge=0)
     picture: Optional[bytes] = None
 
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
 
 #QUERIES
 class UserCreate(UserBase):
@@ -37,7 +42,13 @@ class UserCreate(UserBase):
     password: str = Field(..., max_length=255)
     age: int = Field(..., ge=0, le=150)
 
+class UserLogin(BaseModel):
+    email: EmailStr = Field(..., max_length=255)
+    password: str = Field(..., max_length=255)
+
 
 #QUERIES RESPONSES
 class UserResponse(BaseModel):
     id: int
+
+Token.model_rebuild()

@@ -1,10 +1,18 @@
-from sqlalchemy import Column, Integer, String, Numeric, DateTime, Time, ForeignKey, Table, LargeBinary
+from datetime import datetime
+
+from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey, Table, LargeBinary
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime
+from argon2 import PasswordHasher
 
 from database import Base
 
+
+SALT = 'YOUR_SALT'.encode('utf-8')
+
+
+Base = declarative_base()
+ph = PasswordHasher()
 
 class User(Base):
     __tablename__ = "users"
@@ -18,6 +26,16 @@ class User(Base):
 
     meals = relationship('Meal', back_populates='user')
     weightings = relationship('Weighting', back_populates='user')
+
+    def verify_password(self, password: str) -> bool:
+        try:
+            return ph.verify(self.password, password)
+        except:
+            return False
+    
+    @staticmethod
+    def get_password_hash(password: str) -> str:
+        return ph.hash(password, salt=SALT)
 
 class Weighting(Base):
     __tablename__ = "weightings"

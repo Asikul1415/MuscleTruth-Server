@@ -8,6 +8,7 @@ import models, schemas
 from database import get_db, SessionLocal, engine
 from login import (
     authenticate_user, 
+    get_current_user,
     create_JWT_token,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
@@ -18,7 +19,7 @@ app = FastAPI()
 
 
 @app.post("/users/register", response_model=schemas.UserResponse)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def create_user(user: schemas.UserBase, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user:
         raise HTTPException(
@@ -58,6 +59,35 @@ async def login(user_data: schemas.UserLogin,  db: Session = Depends(get_db)):
         "token_type": "bearer",
         "user": user
     }
+
+@app.post("/weightings/add", response_model=schemas.WeightingResponse)
+async def add_weighting(weighting: schemas.WeightingCreate, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_item = models.Weighting(
+        user_id = current_user.id,
+        result = weighting.result,
+        picture = weighting.picture,
+        creation_date = weighting.creation_date
+    )
+
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+
+    return db_item
+
+@app.post("/meals/add", response_model=schemas.MealResponse)
+async def add_meal(meal: schemas.MealCreate, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_item = models.Meal(
+        user_id = current_user.id,
+        picture = meal.picture,
+        creation_date = meal.creation_date
+    )
+
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+
+    return db_item
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

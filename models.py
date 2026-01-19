@@ -44,7 +44,7 @@ class Weighting(Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     result = Column(Numeric(6, 2), nullable=False)
     picture = Column(LargeBinary)
-    creation_date = Column(DateTime(timezone=True), default=datetime.utcnow(), nullable=False)
+    creation_date = Column(DateTime(timezone=True), default=datetime.astimezone(datetime.now()), nullable=False)
 
     user = relationship('User', back_populates='weightings')
 
@@ -62,7 +62,7 @@ class Meal(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     picture = Column(LargeBinary)
-    creation_date = Column(DateTime(timezone=True), default=datetime.utcnow(), nullable=False)
+    creation_date = Column(DateTime(timezone=True), default=datetime.astimezone(datetime.now()), nullable=False)
 
     user = relationship('User', back_populates='meals')
     meals = relationship('User', back_populates='meals')

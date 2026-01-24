@@ -24,15 +24,16 @@ class User(Base):
     age = Column(Integer, nullable=False)
     profile_picture = Column(LargeBinary)
 
-    meals = relationship('Meal', back_populates='user')
     weightings = relationship('Weighting', back_populates='user')
+    meals = relationship('Meal', back_populates='user')
+    products = relationship('Product', back_populates='user')
 
     def verify_password(self, password: str) -> bool:
         try:
             return ph.verify(self.password, password)
         except:
             return False
-    
+
     @staticmethod
     def get_password_hash(password: str) -> str:
         return ph.hash(password, salt=SALT)
@@ -48,14 +49,6 @@ class Weighting(Base):
 
     user = relationship('User', back_populates='weightings')
 
-meals_products = Table(
-    'meals_products',
-    Base.metadata,
-    Column('meal_id', Integer, ForeignKey('meals.id'), primary_key=True),
-    Column('product_id', Integer, ForeignKey('products.id'), primary_key=True),
-    Column('product_amount', Numeric(6, 2), nullable=False)
-)
-
 class Meal(Base):
     __tablename__ = "meals"
 
@@ -65,17 +58,29 @@ class Meal(Base):
     creation_date = Column(DateTime(timezone=True), default=datetime.astimezone(datetime.now()), nullable=False)
 
     user = relationship('User', back_populates='meals')
-    meals = relationship('User', back_populates='meals')
-    products = relationship('Product', secondary=meals_products, back_populates='meals')
+    servings = relationship('Serving', back_populates='meal')
 
 class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     title = Column(String(255), nullable=False)
     proteins = Column(Integer, nullable=False)
     fats = Column(Integer, nullable=False)
     carbs = Column(Integer, nullable=False)
     picture = Column(LargeBinary)
 
-    meals = relationship('Meal', secondary=meals_products, back_populates='products')
+    user = relationship('User', back_populates='products')
+    servings = relationship('Serving', back_populates='product')
+
+class Serving(Base):
+    __tablename__ = "servings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    meal_id = Column('meal_id', Integer, ForeignKey('meals.id'))
+    product_id = Column('product_id', Integer, ForeignKey('products.id'))
+    product_amount =  Column('product_amount', Numeric(6, 2), nullable=False)
+
+    meal = relationship('Meal', back_populates='servings')
+    product = relationship('Product', back_populates='servings')

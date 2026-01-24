@@ -8,6 +8,7 @@ from pydantic import BaseModel, EmailStr, Field
 class UserBase(BaseModel):
     name: str = Field(..., max_length=255)
     email: EmailStr = Field(..., max_length=255)
+    password: str = Field(..., max_length=255)
     age: int = Field(..., ge=0, le=150)
     profile_picture: Optional[bytes] = None
 
@@ -24,16 +25,20 @@ class MealBase(BaseModel):
 
 class ProductBase(BaseModel):
     title: str = Field(..., max_length=255)
+    user_id: int = Field(...)
     proteins: int = Field(..., ge=0)
     fats: int = Field(..., ge=0)
     carbs: int = Field(..., ge=0)
     picture: Optional[bytes] = None
 
+class ServingBase(BaseModel):
+    meal_id: int = Field(...)
+    product_id: int = Field(...)
+    product_amount: float = Field(..., ge=0, le=999.99)
+
 class Token(BaseModel):
     access_token: str
-    token_type: str = "bearer"
-    user: UserResponse
-
+    token_type: str = "Bearer"
 
 #QUERIES
 class UserLogin(BaseModel):
@@ -49,12 +54,17 @@ class MealCreate(BaseModel):
     picture: Optional[bytes] = None
     creation_date: Optional[datetime] = None
 
+class ProductCreate(BaseModel):
+    title: str = Field(..., max_length=255)
+    proteins: int = Field(..., ge=0)
+    fats: int = Field(..., ge=0)
+    carbs: int = Field(..., ge=0)
+    picture: Optional[bytes] = None
+
+class ServingCreate(BaseModel):
+    product_id: int = Field(...)
+    product_amount: float = Field(..., ge=0, le=999.99)
+
 #QUERIES RESPONSES
-class UserResponse(BaseModel):
-    id: int
-
-class WeightingResponse(BaseModel):
-    id: int
-
-class MealResponse(BaseModel):
+class AddResponse(BaseModel):
     id: int

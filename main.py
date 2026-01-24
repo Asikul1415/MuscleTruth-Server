@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import uvicorn
 
@@ -15,10 +15,11 @@ from login import (
 
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
+api_router = APIRouter(prefix='/api')
 
 
 
-@app.post("/users/register", response_model=schemas.UserResponse)
+@api_router.post("/auth/register", response_model=schemas.AddResponse)
 def create_user(user: schemas.UserBase, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user:
@@ -39,7 +40,7 @@ def create_user(user: schemas.UserBase, db: Session = Depends(get_db)):
     db.refresh(db_item)
     return db_item
 
-@app.post("/users/login", response_model=schemas.Token)
+@api_router.post("/auth/login", response_model=schemas.Token)
 async def login(user_data: schemas.UserLogin,  db: Session = Depends(get_db)):
     user = authenticate_user(db, user_data.email, user_data.password)
     if not user:
@@ -60,7 +61,7 @@ async def login(user_data: schemas.UserLogin,  db: Session = Depends(get_db)):
         "user": user
     }
 
-@app.post("/weightings/add", response_model=schemas.WeightingResponse)
+@api_router.post("/weightings", response_model=schemas.AddResponse)
 async def add_weighting(weighting: schemas.WeightingCreate, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     db_item = models.Weighting(
         user_id = current_user.id,
@@ -75,7 +76,7 @@ async def add_weighting(weighting: schemas.WeightingCreate, current_user: models
 
     return db_item
 
-@app.post("/meals/add", response_model=schemas.MealResponse)
+@api_router.post("/meals", response_model=schemas.AddResponse)
 async def add_meal(meal: schemas.MealCreate, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     db_item = models.Meal(
         user_id = current_user.id,
@@ -89,5 +90,37 @@ async def add_meal(meal: schemas.MealCreate, current_user: models.User = Depends
 
     return db_item
 
+@api_router.post("/meals/{meal_id}/products", response_model=schemas.AddResponse)
+async def add_serving(serving: schemas.ServingCreate, meal_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_item = models.Serving(
+        meal_id = meal_id,
+        product_id = serving.product_id,
+        product_amount = serving.product_amount
+    )
+
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+
+    return db_item
+
+@api_router.post("/products", response_model=schemas.AddResponse)
+async def add_product(product: schemas.ProductCreate, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_item = models.Product(
+        user_id = current_user.id,
+        title = product.title,
+        proteins = product.proteins,
+        fats = product.fats,
+        carbs = product.carbs,
+        picture = product.picture,
+    )
+
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+
+    return db_item
+
+app.include_router(api_router)
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

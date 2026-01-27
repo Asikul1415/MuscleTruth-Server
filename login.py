@@ -34,7 +34,7 @@ def create_JWT_token(data: dict, expires_delta: Optional[timedelta] = timedelta(
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """Получение текущего пользователя из JWT токена"""
 
     credentials_exception = HTTPException(

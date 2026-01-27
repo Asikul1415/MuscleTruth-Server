@@ -27,6 +27,7 @@ class User(Base):
     weightings = relationship('Weighting', back_populates='user')
     meals = relationship('Meal', back_populates='user')
     products = relationship('Product', back_populates='user')
+    servings = relationship('Serving', back_populates='user')
 
     def verify_password(self, password: str) -> bool:
         try:
@@ -78,9 +79,11 @@ class Serving(Base):
     __tablename__ = "servings"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     meal_id = Column('meal_id', Integer, ForeignKey('meals.id'))
     product_id = Column('product_id', Integer, ForeignKey('products.id'))
     product_amount =  Column('product_amount', Numeric(6, 2), nullable=False)
 
+    user = relationship('User', back_populates='servings')
     meal = relationship('Meal', back_populates='servings')
     product = relationship('Product', back_populates='servings')

@@ -46,6 +46,7 @@ class ServingBase(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "Bearer"
+    user_id: int
 
 #QUERIES
 class UserLogin(BaseModel):

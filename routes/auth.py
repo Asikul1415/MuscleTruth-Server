@@ -56,5 +56,5 @@ def login(user_data: schemas.UserLogin,  db: Session = Depends(get_db)):
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": user
+        "user_id": user.id
     }

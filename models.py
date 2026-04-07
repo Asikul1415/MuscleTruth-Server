@@ -22,7 +22,7 @@ class User(Base):
     email = Column(String(255), nullable=False)
     password = Column(String(255), nullable=False)
     age = Column(Integer, nullable=False)
-    profile_picture = Column(LargeBinary)
+    profile_picture = Column(String(255))
 
     weightings = relationship('Weighting', back_populates='user')
     meals = relationship('Meal', back_populates='user')
@@ -45,7 +45,7 @@ class Weighting(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     result = Column(Numeric(6, 2), nullable=False)
-    picture = Column(LargeBinary)
+    picture = Column(String(255))
     creation_date = Column(DateTime(timezone=True), default=datetime.astimezone(datetime.now()), nullable=False)
 
     user = relationship('User', back_populates='weightings')
@@ -55,11 +55,16 @@ class Meal(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    picture = Column(LargeBinary)
+    meal_type_id = Column(Integer, ForeignKey('meal_types.id'), nullable=False) 
+    picture = Column(String(255))
     creation_date = Column(DateTime(timezone=True), default=datetime.astimezone(datetime.now()), nullable=False)
 
     user = relationship('User', back_populates='meals')
-    servings = relationship('Serving', back_populates='meal')
+    meal_type = relationship('MealType', back_populates='meals')
+    servings = relationship('Serving', back_populates='meal', cascade="all, delete-orphan")
+
+    def print_info(self):
+        print(f"Meal: \nid: {self.id}\nuser_id: {self.user_id}\nmeal_type_id: {self.meal_type_id}\ncreation_date: {self.creation_date}")
 
 class Product(Base):
     __tablename__ = "products"
@@ -70,7 +75,7 @@ class Product(Base):
     proteins = Column(Integer, nullable=False)
     fats = Column(Integer, nullable=False)
     carbs = Column(Integer, nullable=False)
-    picture = Column(LargeBinary)
+    picture = Column(String(255))
 
     user = relationship('User', back_populates='products')
     servings = relationship('Serving', back_populates='product')
@@ -87,3 +92,11 @@ class Serving(Base):
     user = relationship('User', back_populates='servings')
     meal = relationship('Meal', back_populates='servings')
     product = relationship('Product', back_populates='servings')
+
+class MealType(Base):
+    __tablename__ = "meal_types"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+
+    meals = relationship('Meal', back_populates='meal_type')

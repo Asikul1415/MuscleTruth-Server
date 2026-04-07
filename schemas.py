@@ -1,9 +1,8 @@
 from datetime import datetime
-from typing import Optional, List, Any
+from typing import Optional, List
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from models import Product
 
 
 #BASIS CLASSES
@@ -13,20 +12,22 @@ class UserBase(BaseModel):
     email: EmailStr = Field(..., max_length=255)
     password: str = Field(..., max_length=255)
     age: int = Field(..., ge=0, le=150)
-    profile_picture: Optional[bytes] = None
+    profile_picture: Optional[str] = None
 
 class WeightingBase(BaseModel):
     id: Optional[int] = None
     user_id: int = Field(...)
     result: float = Field(..., ge=0, le=999.99)
-    picture: Optional[bytes] = None
+    picture: Optional[str] = None
     creation_date: Optional[datetime] = datetime.now()
 
 class MealBase(BaseModel):
     id: Optional[int] = None
     user_id: int = Field(...)
-    picture: Optional[bytes] = None
+    meal_type_id: int = Field(...)
+    picture: Optional[str] = None
     creation_date: Optional[datetime] = None
+    products: Optional[List[ProductBase]] = None
 
 class ProductBase(BaseModel):
     id: Optional[int] = None
@@ -35,13 +36,13 @@ class ProductBase(BaseModel):
     proteins: int = Field(..., ge=0)
     fats: int = Field(..., ge=0)
     carbs: int = Field(..., ge=0)
-    picture: Optional[bytes] = None
+    picture: Optional[str] = None
 
 class ServingBase(BaseModel):
     id: Optional[int] = None
     meal_id: int = Field(...)
     product_id: int = Field(...)
-    product_amount: float = Field(..., ge=0, le=999.99)
+    product_amount: float = Field(..., ge=0, le=9999.99)
 
 class Token(BaseModel):
     access_token: str
@@ -53,18 +54,42 @@ class UserLogin(BaseModel):
     email: EmailStr = Field(..., max_length=255)
     password: str = Field(..., max_length=255)
 
+class UserRequest(BaseModel):
+    id: Optional[int] = None
+    name: str = Field(..., max_length=255)
+    email: EmailStr = Field(..., max_length=255)
+    password: str = Field(..., max_length=255)
+    age: int = Field(..., ge=0, le=150)
+    profile_picture: Optional[str] = None
+
+class UserPassword(BaseModel):
+    password: str = Field(..., max_length=255)
+
+class BoolResponse(BaseModel):
+    response: bool
+
+class WeightingsRequest(BaseModel):
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
 class WeightingCreate(BaseModel):
     result: float = Field(..., ge=0, le=999.99)
-    picture: Optional[bytes] = None
-    creation_date: Optional[datetime] = datetime.now()
+    picture: Optional[str] = None
+    creation_date: Optional[datetime] = None
 
 class WeightingUpdate(BaseModel):
     result: float = Field(..., ge=0, le=999.99)
-    picture: Optional[bytes] = None
-    
+    picture: Optional[str] = None
+
+class MealTypeTotal(BaseModel):
+    proteins: float = Field(..., ge=0)
+    fats: float = Field(..., ge=0)
+    carbs: float = Field(..., ge=0)
+    total_calories: float = Field(..., ge=0, le=9999.99)
 class MealCreate(BaseModel):
-    picture: Optional[bytes] = None
-    creation_date: Optional[datetime] = None
+    meal_type_id: int = Field(...)
+    picture: Optional[str] = None
+    creation_date: Optional[datetime] = datetime.now()
 
 class MealUpdate(BaseModel):
     picture: Optional[bytes] = None
@@ -74,11 +99,14 @@ class ProductCreate(BaseModel):
     proteins: int = Field(..., ge=0)
     fats: int = Field(..., ge=0)
     carbs: int = Field(..., ge=0)
-    picture: Optional[bytes] = None
+    picture: Optional[str] = None
 
 class ServingCreate(BaseModel):
     product_id: int = Field(...)
-    product_amount: float = Field(..., ge=0, le=999.99)
+    product_amount: float = Field(..., ge=0, le=9999.99)
+
+class CheckEmail(BaseModel):
+    email: str
 
 #QUERIES RESPONSES
 class AddResponse(BaseModel):

@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 import models, schemas
@@ -10,33 +10,51 @@ from login import (
     create_JWT_token,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
-
+import utils
+import json
 
 
 auth_router = APIRouter(prefix='/api/auth')
 
 
-@auth_router.post("/register", response_model=schemas.AddResponse)
-def create_user(user: schemas.UserBase, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.email == user.email).first()
+@auth_router.post("/register", response_model=schemas.Token)
+def create_user(user: str = Form(...), image: UploadFile = File(None), db: Session = Depends(get_db)):
+    data_dict = json.loads(user)
+    user_create = schemas.UserBase(**data_dict)
+
+    image_path = None
+    if image and image.filename:
+        paths = utils.save_image(image)
+        image_path = paths
+
+    db_user = db.query(models.User).filter(models.User.email == user_create.email).first()
     if db_user:
         raise HTTPException(
             status_code=400, 
             detail="Данная почта уже зарегистрирована!")
-
+    
     db_item = models.User(
-        name=user.name,
-        email=user.email,
-        password= models.User.get_password_hash(user.password),
-        age=user.age,
-        profile_picture=user.profile_picture
+        name=user_create.name,
+        email=user_create.email,
+        password= models.User.get_password_hash(user_create.password),
+        age=user_create.age,
+        profile_picture=image_path
     )
     
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
 
-    return db_item
+    access_token = create_JWT_token(
+        data={"sub": user_create.email}, 
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": db_item.id
+    }
 
 @auth_router.post("/login", response_model=schemas.Token)
 def login(user_data: schemas.UserLogin,  db: Session = Depends(get_db)):

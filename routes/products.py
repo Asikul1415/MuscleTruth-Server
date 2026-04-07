@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 import models, schemas
@@ -8,17 +8,22 @@ from database import get_db
 from login import (
     get_current_user,
 )
-
+import utils
+import json
 
 
 products_router = APIRouter(prefix='/api/products')
 
 
 @products_router.get("", response_model=List[schemas.ProductBase])
-def get_products(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
-    db_items = db.query(models.Product).all()
+def get_products(search_query: str = None, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_items = db.query(models.Product)
 
-    return db_items
+    if(search_query):
+        print(search_query)
+        db_items = db_items.filter(models.Product.title.ilike(f"%{search_query}%"))
+
+    return db_items.all()
 
 @products_router.get("/{product_id}", response_model=schemas.ProductBase)
 def get_product(product_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -31,15 +36,23 @@ def get_product(product_id: int, current_user: models.User = Depends(get_current
     
     return db_item
 
-@products_router.post("", response_model=schemas.AddResponse)
-def add_product(product: schemas.ProductCreate, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+@products_router.post("", response_model=schemas.ProductBase)
+def add_product(product: str = Form(...), image: UploadFile = File(None), current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    data_dict = json.loads(product)
+    product_create = schemas.ProductCreate(**data_dict)
+
+    image_path = None
+    if image and image.filename:
+        paths = utils.save_image(image)
+        image_path = paths
+
     db_item = models.Product(
         user_id = current_user.id,
-        title = product.title,
-        proteins = product.proteins,
-        fats = product.fats,
-        carbs = product.carbs,
-        picture = product.picture,
+        title = product_create.title,
+        proteins = product_create.proteins,
+        fats = product_create.fats,
+        carbs = product_create.carbs,
+        picture = image_path,
     )
 
     db.add(db_item)

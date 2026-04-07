@@ -12,7 +12,7 @@ from database import get_db
 
 SECRET_KEY = "YOUR-JWT-KEY"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 20160
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -20,6 +20,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 def authenticate_user(db: Session, email: str, password: str):
     user = db.query(models.User).filter(models.User.email == email).first()
+
     if user == None or user.verify_password(password) == False:
         return False
 
@@ -39,7 +40,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Вы не авторизованы!",
         headers={"WWW-Authenticate": "Bearer"},
     )
 

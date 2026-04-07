@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 from models import Base
@@ -16,7 +17,8 @@ app.include_router(products_router)
 app.include_router(servings_router)
 app.include_router(users_router)
 
-
+#Sharing folder to the server, so it can be accessed online
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

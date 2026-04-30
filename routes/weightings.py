@@ -151,11 +151,15 @@ def add_weighting(weighting: str = Form(...), image: UploadFile = File(None), cu
         paths = utils.save_image(image)
         image_path = paths
 
+    creation_date = weighting_create.creation_date
+    if(creation_date == None):
+        creation_date = func.now()
+
     db_item = models.Weighting(
         user_id = current_user.id,
         result = weighting_create.result,
         picture = image_path,
-        creation_date = func.now()
+        creation_date = creation_date
     )
 
     db.add(db_item)

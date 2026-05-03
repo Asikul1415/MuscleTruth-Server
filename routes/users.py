@@ -13,16 +13,13 @@ import utils
 
 users_router = APIRouter(prefix='/api/users')
 
-@users_router.post("/check-email", response_model=schemas.BoolResponse)
-def check_user_email(email: schemas.CheckEmail, db: Session = Depends(get_db)):
+@users_router.post("/check-email", response_model=bool)
+def check_user_email(email: str = Form(...), db: Session = Depends(get_db)):
 
     db_item = db.query(models.User).filter(models.User.email == email.email).first()
-    if(db_item):
-        return schemas.BoolResponse(response=True)
+    return db_item != None
 
-    return schemas.BoolResponse(response=False)
-
-@users_router.get("/me", response_model=schemas.UserRequest)
+@users_router.get("/me", response_model=schemas.UserBase)
 def get_user_info(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
 
     if(not current_user):
@@ -31,19 +28,10 @@ def get_user_info(current_user: models.User = Depends(get_current_user), db: Ses
             detail="Вы не авторизованы!"
         )
 
-    user = schemas.UserRequest(
-        id = current_user.id,
-        name=current_user.name,
-        email=current_user.email,
-        password = current_user.password,
-        age = current_user.age,
-        profile_picture=current_user.profile_picture
-    )
+    return current_user
 
-    return user
-
-@users_router.post("/me/check-password", response_model=schemas.BoolResponse)
-def check_user_password(user:schemas.UserPassword ,current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+@users_router.post("/me/check-password", response_model=bool)
+def check_user_password(password: str = Form(...), current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
 
     if(not current_user):
         raise HTTPException(
@@ -51,7 +39,7 @@ def check_user_password(user:schemas.UserPassword ,current_user: models.User = D
             detail="Вы не авторизованы!"
         )
     
-    return schemas.BoolResponse(response=models.User.verify_password(current_user, user.password))
+    return models.User.verify_password(current_user, password)
 
 @users_router.put("/me", response_model=bool)
 def update_user_info(user: str = Form(...), image: UploadFile = File(None), current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -63,18 +51,23 @@ def update_user_info(user: str = Form(...), image: UploadFile = File(None), curr
         )
     
     data_dict = json.loads(user)
-    user_create = schemas.UserBase(**data_dict)
+    updated_user_info = schemas.UserUpdate(**data_dict)
 
     image_path = None
     if image and image.filename:
         paths = utils.save_image(image)
         image_path = paths
     
-    current_user.name = user_create.name
-    current_user.email = user_create.email
-    current_user.password = models.User.get_password_hash(user_create.password)
-    current_user.age = user_create.age
-    current_user.profile_picture = image_path
+    if(updated_user_info.name and len(updated_user_info.name) > 3):
+        current_user.name = updated_user_info.name
+    if(updated_user_info.email and len(updated_user_info.email) > 5):
+        current_user.email = updated_user_info.email
+    if(updated_user_info.password and len(updated_user_info.password) > 8):
+        current_user.password = models.User.get_password_hash(updated_user_info.password)
+    if(updated_user_info.age and updated_user_info.age > 6 and updated_user_info.age < 130):
+        current_user.age = updated_user_info.age
+    if(image_path):
+        current_user.profile_picture = image_path
 
     db.commit()
     db.refresh(current_user)

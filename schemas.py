@@ -54,19 +54,12 @@ class UserLogin(BaseModel):
     email: EmailStr = Field(..., max_length=255)
     password: str = Field(..., max_length=255)
 
-class UserRequest(BaseModel):
-    id: Optional[int] = None
-    name: str = Field(..., max_length=255)
-    email: EmailStr = Field(..., max_length=255)
-    password: str = Field(..., max_length=255)
-    age: int = Field(..., ge=0, le=150)
+class UserUpdate(BaseModel):
+    name: Optional[str] = Field(None, max_length=255)
+    email: Optional[EmailStr] = Field(None, max_length=255)
+    password: Optional[str] = Field(None, max_length=255)
+    age: Optional[int] = Field(None, ge=0, le=150)
     profile_picture: Optional[str] = None
-
-class UserPassword(BaseModel):
-    password: str = Field(..., max_length=255)
-
-class BoolResponse(BaseModel):
-    response: bool
 
 class WeightingsRequest(BaseModel):
     start_date: Optional[str] = None
@@ -91,9 +84,6 @@ class MealCreate(BaseModel):
     picture: Optional[str] = None
     creation_date: Optional[datetime] = datetime.now()
 
-class MealUpdate(BaseModel):
-    picture: Optional[bytes] = None
-
 class ProductCreate(BaseModel):
     title: str = Field(..., max_length=255)
     proteins: int = Field(..., ge=0)
@@ -104,9 +94,6 @@ class ProductCreate(BaseModel):
 class ServingCreate(BaseModel):
     product_id: int = Field(...)
     product_amount: float = Field(..., ge=0, le=9999.99)
-
-class CheckEmail(BaseModel):
-    email: str
 
 #QUERIES RESPONSES
 class AddResponse(BaseModel):

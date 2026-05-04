@@ -93,7 +93,7 @@ def get_weighting_chart_data(current_user: models.User = Depends(get_current_use
         func.date_trunc('day', models.Weighting.creation_date).cast(Date).label('day'),
         func.round(cast(func.avg(models.Weighting.result), Numeric), 2).label('average_weight')
     ).filter(
-        models.Weighting.user_id == current_user.id and models.Weighting.creation_date >= start
+        models.Weighting.user_id == current_user.id, models.Weighting.creation_date >= start, models.Weighting.creation_date <= end
     ).group_by(
         func.date_trunc('day', models.Weighting.creation_date)
     ).order_by(
@@ -121,7 +121,7 @@ def get_weighting_chart_data(current_user: models.User = Depends(get_current_use
         func.date_trunc('week', models.Weighting.creation_date).cast(Date).label('week_start'),
         func.round(cast(func.avg(models.Weighting.result), Numeric), 2).label('average_weight')
     ).filter(
-        models.Weighting.user_id == current_user.id and models.Weighting.creation_date >= start
+        models.Weighting.user_id == current_user.id, models.Weighting.creation_date >= start, models.Weighting.creation_date <= end
     ).group_by(
         func.date_trunc('week', models.Weighting.creation_date)
     ).order_by(

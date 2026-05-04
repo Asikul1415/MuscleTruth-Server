@@ -130,7 +130,7 @@ def get_meal(meal_id: int, current_user: models.User = Depends(get_current_user)
     return db_item
 
 @meals_router.get("/chart/week")
-def get_weightings_with_calories_year_info(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_weightings_with_calories_week_info(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
 
     end = datetime.today()
     start = end - timedelta(days=7)
@@ -165,7 +165,7 @@ def get_weightings_with_calories_year_info(current_user: models.User = Depends(g
     return calories_per_day
 
 @meals_router.get("/chart/month")
-def get_weightings_with_calories_year_info(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_weightings_with_calories_month_info(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
 
     end = datetime.today()
     start = end - timedelta(days=31)

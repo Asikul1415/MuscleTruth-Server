@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import List
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
-from sqlalchemy import func
+from sqlalchemy import Date, Numeric, cast, func
 from sqlalchemy.orm import Session
 
 import schemas, models
@@ -128,6 +128,124 @@ def get_meal(meal_id: int, current_user: models.User = Depends(get_current_user)
         )
     
     return db_item
+
+@meals_router.get("/chart/week")
+def get_weightings_with_calories_year_info(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+
+    end = datetime.today()
+    start = end - timedelta(days=7)
+
+    meals = db.query(models.Meal).filter(
+        models.Meal.creation_date >= start,
+        models.Meal.creation_date <= end
+    ).all()
+
+
+    meals_total_per_day = dict()
+    for meal in meals:
+        meal_calories = 0
+        for serving in meal.servings:
+            if serving.product:
+                product: models.Product = serving.product
+                meal_calories += (4 * product.proteins + 9 * product.fats + 4 * product.carbs) * (serving.product_amount / 100)
+        day = meal.creation_date.date().isoformat()
+
+        if(day not in meals_total_per_day.keys()):
+            meals_total_per_day[day] = []
+        meals_total_per_day[day].append(meal_calories)
+    
+    
+    calories_per_day = []
+    for day, values in sorted(meals_total_per_day.items()):
+        calories_per_day.append({
+            "day": day,
+            "total_calories": sum(values)
+        })
+
+    return calories_per_day
+
+@meals_router.get("/chart/month")
+def get_weightings_with_calories_year_info(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+
+    end = datetime.today()
+    start = end - timedelta(days=31)
+
+    meals = db.query(models.Meal).filter(
+        models.Meal.creation_date >= start,
+        models.Meal.creation_date <= end
+    ).all()
+
+
+    meals_total_per_day = dict()
+    for meal in meals:
+        meal_calories = 0
+        for serving in meal.servings:
+            if serving.product:
+                product: models.Product = serving.product
+                meal_calories += (4 * product.proteins + 9 * product.fats + 4 * product.carbs) * (serving.product_amount / 100)
+        day = meal.creation_date.date().isoformat()
+
+        if(day not in meals_total_per_day.keys()):
+            meals_total_per_day[day] = []
+        meals_total_per_day[day].append(meal_calories)
+    
+    
+    calories_per_day = []
+    for day, values in sorted(meals_total_per_day.items()):
+        calories_per_day.append({
+            "day": day,
+            "total_calories": sum(values)
+        })
+
+    return calories_per_day
+
+@meals_router.get("/chart/year")
+def get_weightings_with_calories_year_info(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    def get_week_start(date: datetime) -> datetime:
+        return date - timedelta(days=date.weekday())
+
+    end = datetime.today()
+    start = end - timedelta(days=365)
+
+    meals = db.query(models.Meal).filter(
+        models.Meal.creation_date >= start,
+        models.Meal.creation_date <= end
+    ).all()
+
+
+    meals_total_per_day = dict()
+    for meal in meals:
+        meal_calories = 0
+        for serving in meal.servings:
+            if serving.product:
+                product: models.Product = serving.product
+                meal_calories += (4 * product.proteins + 9 * product.fats + 4 * product.carbs) * (serving.product_amount / 100)
+        day = meal.creation_date.date().isoformat()
+
+        if(day not in meals_total_per_day.keys()):
+            meals_total_per_day[day] = []
+        meals_total_per_day[day].append(meal_calories)
+    
+    
+    avg_calories_per_day = dict()
+    for day, values in sorted(meals_total_per_day.items()):
+
+        week_start = get_week_start(datetime.fromisoformat(day)).date().isoformat()
+        if(week_start not in avg_calories_per_day.keys()):
+            avg_calories_per_day[week_start] = []
+        avg_calories_per_day[week_start].append(sum(values))
+
+    
+    avg_calories_per_week = []
+    for week_start, avg_calories in sorted(avg_calories_per_day.items()):
+        avg = round(sum(avg_calories) / len(avg_calories), 2)
+        
+        avg_calories_per_week.append({
+            "week_start": week_start,
+            "average_calories": avg
+        })
+    
+    return avg_calories_per_week
 
 @meals_router.post("", response_model=schemas.MealBase)
 def add_meal(meal: str = Form(...), image: UploadFile = File(None), current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):

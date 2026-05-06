@@ -16,7 +16,7 @@ users_router = APIRouter(prefix='/api/users')
 @users_router.post("/check-email", response_model=bool)
 def check_user_email(email: str = Form(...), db: Session = Depends(get_db)):
 
-    db_item = db.query(models.User).filter(models.User.email == email.email).first()
+    db_item = db.query(models.User).filter(models.User.email == email).first()
     return db_item != None
 
 @users_router.get("/me", response_model=schemas.UserBase)

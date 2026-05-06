@@ -136,6 +136,7 @@ def get_weightings_with_calories_week_info(current_user: models.User = Depends(g
     start = end - timedelta(days=7)
 
     meals = db.query(models.Meal).filter(
+        models.Meal.user_id == current_user.id,
         models.Meal.creation_date >= start,
         models.Meal.creation_date <= end
     ).all()
@@ -171,6 +172,7 @@ def get_weightings_with_calories_month_info(current_user: models.User = Depends(
     start = end - timedelta(days=31)
 
     meals = db.query(models.Meal).filter(
+        models.Meal.user_id == current_user.id,
         models.Meal.creation_date >= start,
         models.Meal.creation_date <= end
     ).all()
@@ -208,6 +210,7 @@ def get_weightings_with_calories_year_info(current_user: models.User = Depends(g
     start = end - timedelta(days=365)
 
     meals = db.query(models.Meal).filter(
+        models.Meal.user_id == current_user.id,
         models.Meal.creation_date >= start,
         models.Meal.creation_date <= end
     ).all()

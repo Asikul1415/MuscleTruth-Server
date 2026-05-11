@@ -38,6 +38,17 @@ class ProductBase(BaseModel):
     carbs: int = Field(..., ge=0)
     picture: Optional[str] = None
 
+class FavouriteProduct(BaseModel):
+    id: Optional[int] = None
+    product_id: int = Field(...)
+    user_id: int = Field(...)
+
+class ProductHistory(BaseModel):
+    id: Optional[int] = None
+    product_id: int = Field(...)
+    user_id: int = Field(...)
+    use_date: datetime
+
 class ServingBase(BaseModel):
     id: Optional[int] = None
     meal_id: int = Field(...)

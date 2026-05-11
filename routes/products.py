@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 import models, schemas
@@ -24,6 +25,18 @@ def get_products(search_query: str = None, current_user: models.User = Depends(g
         db_items = db_items.filter(models.Product.title.ilike(f"%{search_query}%"))
 
     return db_items.all()
+
+@products_router.get("/favourites", response_model=List[schemas.FavouriteProduct])
+def get_favourite_products(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_items = db.query(models.FavouriteProduct).filter(models.FavouriteProduct.user_id == current_user.id)
+
+    return db_items.all()
+
+@products_router.get("/recent", response_model=List[schemas.ProductHistory])
+def get_recently_used_products(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_items = db.query(models.ProductsHistory).filter(models.ProductsHistory.user_id == current_user.id).order_by(desc(models.ProductsHistory.use_date))
+
+    return db_items.limit(50).all()
 
 @products_router.get("/{product_id}", response_model=schemas.ProductBase)
 def get_product(product_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):

@@ -28,6 +28,8 @@ class User(Base):
     meals = relationship('Meal', back_populates='user')
     products = relationship('Product', back_populates='user')
     servings = relationship('Serving', back_populates='user')
+    favourite_products = relationship('FavouriteProduct', back_populates='user')
+    products_histories = relationship('ProductsHistory', back_populates='user')
 
     def verify_password(self, password: str) -> bool:
         try:

@@ -67,6 +67,9 @@ def update_serving(serving: schemas.ServingCreate, meal_id: int, serving_id: int
     db_item.product_id = serving.product_id
     db_item.product_amount = serving.product_amount
 
+    db.commit()
+    db.refresh(db_item)
+
     return db_item
 
 @servings_router.delete("/{serving_id}", response_model=schemas.AddResponse)

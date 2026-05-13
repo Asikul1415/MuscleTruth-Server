@@ -81,6 +81,29 @@ class Product(Base):
 
     user = relationship('User', back_populates='products')
     servings = relationship('Serving', back_populates='product')
+    favourite_products = relationship('FavouriteProduct', back_populates='product')
+    products_histories = relationship('ProductsHistory', back_populates='product')
+
+class FavouriteProduct(Base):
+    __tablename__ = "favourite_products"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
+
+    user = relationship('User', back_populates='favourite_products')
+    product = relationship('Product', back_populates='favourite_products')
+
+class ProductsHistory(Base):
+    __tablename__ = "products_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
+    use_date = Column(DateTime(timezone=True), default=datetime.astimezone(datetime.now()), nullable=False)
+
+    user = relationship('User', back_populates='products_histories')
+    product = relationship('Product', back_populates='products_histories')
 
 class Serving(Base):
     __tablename__ = "servings"

@@ -32,6 +32,35 @@ def get_favourite_products(current_user: models.User = Depends(get_current_user)
 
     return db_items.all()
 
+@products_router.get("/favourites/{product_id}", response_model=schemas.FavouriteProduct)
+def get_favourite_product(product_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_item = db.query(models.FavouriteProduct).filter(models.FavouriteProduct.product_id == product_id).first()
+
+    return db_item
+
+
+@products_router.post("/favourites", response_model=schemas.FavouriteProduct)
+def add_favourite_products(product_id: int = Form(...), current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_item = models.FavouriteProduct(
+        product_id = product_id,
+        user_id = current_user.id
+    )
+
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+
+    return db_item
+
+@products_router.delete("/favourites/{product_id}", response_model=bool)
+def delete_favourite_product(product_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_item = db.query(models.FavouriteProduct).filter(models.FavouriteProduct.id != product_id).first()
+
+    db.delete(db_item)
+    db.commit()
+
+    return True
+
 @products_router.get("/recent", response_model=List[schemas.ProductHistory])
 def get_recently_used_products(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     db_items = db.query(models.ProductsHistory).filter(models.ProductsHistory.user_id == current_user.id).order_by(desc(models.ProductsHistory.use_date))

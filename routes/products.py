@@ -67,6 +67,28 @@ def get_recently_used_products(current_user: models.User = Depends(get_current_u
 
     return db_items.limit(50).all()
 
+@products_router.post("/recent", response_model=schemas.ProductHistory)
+def add_recent_product(product_id: int = Form(...), current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_item = models.ProductsHistory(
+        product_id = product_id,
+        user_id = current_user.id
+    )
+
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+
+    return db_item
+
+@products_router.delete("/recent/{product_id}", response_model=bool)
+def delete_recent_product(product_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_item = db.query(models.ProductsHistory).filter(models.ProductsHistory.id == product_id).first()
+
+    db.delete(db_item)
+    db.commit()
+
+    return True
+
 @products_router.get("/{product_id}", response_model=schemas.ProductBase)
 def get_product(product_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     db_item = db.query(models.Product).filter(models.Product.id == product_id).first()

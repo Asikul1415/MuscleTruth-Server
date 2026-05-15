@@ -43,9 +43,9 @@ class FavouriteProduct(BaseModel):
     product_id: int = Field(...)
     user_id: int = Field(...)
 
-class ProductHistory(BaseModel):
+class RecentServing(BaseModel):
     id: Optional[int] = None
-    product_id: int = Field(...)
+    serving_id: int = Field(...)
     user_id: int = Field(...)
     use_date: datetime
 

@@ -29,7 +29,7 @@ class User(Base):
     products = relationship('Product', back_populates='user')
     servings = relationship('Serving', back_populates='user')
     favourite_products = relationship('FavouriteProduct', back_populates='user')
-    products_histories = relationship('ProductsHistory', back_populates='user')
+    recent_servings = relationship('RecentServing', back_populates='user')
 
     def verify_password(self, password: str) -> bool:
         try:
@@ -82,7 +82,6 @@ class Product(Base):
     user = relationship('User', back_populates='products')
     servings = relationship('Serving', back_populates='product')
     favourite_products = relationship('FavouriteProduct', back_populates='product')
-    products_histories = relationship('ProductsHistory', back_populates='product')
 
 class FavouriteProduct(Base):
     __tablename__ = "favourite_products"
@@ -94,16 +93,16 @@ class FavouriteProduct(Base):
     user = relationship('User', back_populates='favourite_products')
     product = relationship('Product', back_populates='favourite_products')
 
-class ProductsHistory(Base):
-    __tablename__ = "products_history"
+class RecentServing(Base):
+    __tablename__ = "recent_servings"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
+    serving_id = Column(Integer, ForeignKey('servings.id', ondelete="CASCADE"), nullable=False)
     use_date = Column(DateTime(timezone=True), default=datetime.astimezone(datetime.now()), nullable=False)
 
-    user = relationship('User', back_populates='products_histories')
-    product = relationship('Product', back_populates='products_histories')
+    user = relationship('User', back_populates='recent_servings')
+    serving = relationship('Serving', back_populates='recent_servings')
 
 class Serving(Base):
     __tablename__ = "servings"
@@ -117,6 +116,7 @@ class Serving(Base):
     user = relationship('User', back_populates='servings')
     meal = relationship('Meal', back_populates='servings')
     product = relationship('Product', back_populates='servings')
+    recent_servings = relationship('RecentServing', back_populates='serving', passive_deletes=True)
 
 class MealType(Base):
     __tablename__ = "meal_types"

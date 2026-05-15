@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
-from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 import models, schemas
@@ -60,34 +59,6 @@ def delete_favourite_product(product_id: int, current_user: models.User = Depend
         db.commit()
         return True
     return False
-
-@products_router.get("/recent", response_model=List[schemas.ProductHistory])
-def get_recently_used_products(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
-    db_items = db.query(models.ProductsHistory).filter(models.ProductsHistory.user_id == current_user.id).order_by(desc(models.ProductsHistory.use_date))
-
-    return db_items.limit(50).all()
-
-@products_router.post("/recent", response_model=schemas.ProductHistory)
-def add_recent_product(product_id: int = Form(...), current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
-    db_item = models.ProductsHistory(
-        product_id = product_id,
-        user_id = current_user.id
-    )
-
-    db.add(db_item)
-    db.commit()
-    db.refresh(db_item)
-
-    return db_item
-
-@products_router.delete("/recent/{product_id}", response_model=bool)
-def delete_recent_product(product_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
-    db_item = db.query(models.ProductsHistory).filter(models.ProductsHistory.id == product_id).first()
-
-    db.delete(db_item)
-    db.commit()
-
-    return True
 
 @products_router.get("/{product_id}", response_model=schemas.ProductBase)
 def get_product(product_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):

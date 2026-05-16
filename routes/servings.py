@@ -14,6 +14,15 @@ from login import (
 
 servings_router = APIRouter(prefix='/api/servings')
 
+@servings_router.get("", response_model=List[schemas.ServingBase])
+def get_servings(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_items = db.query(models.Serving).filter(models.Serving.user_id == current_user.id)
+    if(not db_items):
+        raise HTTPException(
+            status_code=status.HTTP_204_NO_CONTENT
+        )
+    
+    return db_items.all()
 
 @servings_router.get("", response_model=List[schemas.ServingBase])
 def get_meal_servings(meal_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):

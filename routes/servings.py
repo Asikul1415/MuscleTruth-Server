@@ -128,7 +128,8 @@ def delete_serving(serving_id: int, current_user: models.User = Depends(get_curr
     db.commit()
 
     recent_serving = db.query(models.RecentServing).filter(models.RecentServing.serving_id == serving_id).first()
-    db.delete(recent_serving)
-    db.commit()
+    if(recent_serving != None):
+        db.delete(recent_serving)
+        db.commit()
 
     return serving

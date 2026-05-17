@@ -42,16 +42,18 @@ def get_recent_servings(current_user: models.User = Depends(get_current_user), d
 
 @servings_router.post("/recent", response_model=schemas.RecentServing)
 def add_recent_serving(serving_id: int = Form(...), current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
-    db_item = models.RecentServing(
-        serving_id = serving_id,
-        user_id = current_user.id
-    )
+    recent_serving = db.query(models.RecentServing).filter(models.RecentServing.serving_id == serving_id).first()
+    if(recent_serving == None):
+        recent_serving = models.RecentServing(
+            serving_id = serving_id,
+            user_id = current_user.id
+        )
 
-    db.add(db_item)
-    db.commit()
-    db.refresh(db_item)
+        db.add(recent_serving)
+        db.commit()
+        db.refresh(recent_serving)
 
-    return db_item
+    return recent_serving
 
 @servings_router.delete("/recent/{serving_id}", response_model=bool)
 def delete_recent_serving(serving_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):

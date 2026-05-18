@@ -51,17 +51,25 @@ def get_saved_meals(current_user: models.User = Depends(get_current_user), db: S
     
     return db_items.all()
 
-@meals_router.get("/saved/{meal_id}", response_model=List[schemas.SavedMeal])
+@meals_router.get("/saved/{meal_id}", response_model=schemas.SavedMeal|None)
 def get_saved_meal(meal_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
-    db_items = db.query(models.SavedMeal).filter(models.SavedMeal.meal_id == meal_id)
+    db_item = db.query(models.SavedMeal).filter(models.SavedMeal.meal_id == meal_id).first()
+    print(db_item)
+    return db_item
 
-    if(not db_items):
-        raise HTTPException(
-            status_code=status.HTTP_204_NO_CONTENT,
-            detail="Список приёмов пищи пуст!"
-        )
-    
-    return db_items.all()
+@meals_router.post("/saved", response_model=schemas.SavedMeal)
+def add_saved_meal(title: str = Form(...), meal_id: int = Form(...), current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_item = models.SavedMeal(
+        title = title,
+        meal_id = meal_id,
+        user_id = current_user.id
+    )
+
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+
+    return db_item
 
 @meals_router.get("/today", response_model=List[schemas.MealBase])
 def get_today_meals(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -333,6 +341,25 @@ def update_meal(meal_id: int, meal: str = Form(...), image: UploadFile = File(No
     db.refresh(db_item)
 
     return True
+
+@meals_router.delete("/saved/{meal_id}", response_model=schemas.AddResponse)
+def delete_saved_meal(meal_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_item = db.query(models.SavedMeal).filter(models.SavedMeal.meal_id == meal_id).first()
+    if(not db_item):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Такого приёма пищи не существует!"
+        )
+    elif(db_item.user_id != current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Приём пищи может удалить только пользователь, его добавивший!",
+        )
+    
+    db.delete(db_item)
+    db.commit()
+
+    return db_item
 
 @meals_router.delete("/{meal_id}", response_model=schemas.AddResponse)
 def delete_meal(meal_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):

@@ -30,6 +30,7 @@ class User(Base):
     servings = relationship('Serving', back_populates='user')
     favourite_products = relationship('FavouriteProduct', back_populates='user')
     recent_servings = relationship('RecentServing', back_populates='user')
+    saved_meals = relationship('SavedMeal', back_populates='user', cascade="all, delete-orphan")
 
     def verify_password(self, password: str) -> bool:
         try:
@@ -64,9 +65,21 @@ class Meal(Base):
     user = relationship('User', back_populates='meals')
     meal_type = relationship('MealType', back_populates='meals')
     servings = relationship('Serving', back_populates='meal', cascade="all, delete-orphan")
+    saved_meals = relationship('SavedMeal', back_populates='meal', cascade="all, delete-orphan")
 
     def print_info(self):
         print(f"Meal: \nid: {self.id}\nuser_id: {self.user_id}\nmeal_type_id: {self.meal_type_id}\ncreation_date: {self.creation_date}")
+
+class SavedMeal(Base):
+    __tablename__ = "saved_meals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    meal_id = Column(Integer, ForeignKey('meals.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+
+    user = relationship('User', back_populates='saved_meals')
+    meal = relationship('Meal', back_populates='saved_meals')
 
 class Product(Base):
     __tablename__ = "products"

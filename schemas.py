@@ -29,6 +29,12 @@ class MealBase(BaseModel):
     creation_date: Optional[datetime] = None
     products: Optional[List[ProductBase]] = None
 
+class SavedMeal(BaseModel):
+    id: Optional[int] = None
+    title: str = Field(..., max_length=255)
+    meal_id: int = Field(...)
+    user_id: int = Field(...)
+
 class ProductBase(BaseModel):
     id: Optional[int] = None
     title: str = Field(..., max_length=255)

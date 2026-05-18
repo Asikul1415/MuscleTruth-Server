@@ -39,6 +39,30 @@ def get_meals(start_date:str = None, end_date: str = None, current_user: models.
     
     return db_items.all()
 
+@meals_router.get("/saved", response_model=List[schemas.SavedMeal])
+def get_saved_meals(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_items = db.query(models.SavedMeal).filter(models.SavedMeal.user_id == current_user.id)
+
+    if(not db_items):
+        raise HTTPException(
+            status_code=status.HTTP_204_NO_CONTENT,
+            detail="Список приёмов пищи пуст!"
+        )
+    
+    return db_items.all()
+
+@meals_router.get("/saved/{meal_id}", response_model=List[schemas.SavedMeal])
+def get_saved_meal(meal_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    db_items = db.query(models.SavedMeal).filter(models.SavedMeal.meal_id == meal_id)
+
+    if(not db_items):
+        raise HTTPException(
+            status_code=status.HTTP_204_NO_CONTENT,
+            detail="Список приёмов пищи пуст!"
+        )
+    
+    return db_items.all()
+
 @meals_router.get("/today", response_model=List[schemas.MealBase])
 def get_today_meals(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     db_items = db.query(models.Meal).filter(models.Meal.user_id == current_user.id)

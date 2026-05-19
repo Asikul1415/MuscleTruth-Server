@@ -294,6 +294,7 @@ def add_meal(meal: str = Form(...), image: UploadFile = File(None), current_user
     db_item = models.Meal(
         user_id = current_user.id,
         meal_type_id = meal_create.meal_type_id,
+        origin_meal_id = meal_create.origin_meal_id,
         picture = image_path,
         creation_date = func.now()
     )
@@ -339,11 +340,25 @@ def update_meal(meal_id: int, meal: str = Form(...), image: UploadFile = File(No
     db.commit()
     db.refresh(db_item)
 
+    #Removing all meals created from this saved one origin_meal_id
+    children_meals = db.query(models.Meal).filter(models.Meal.origin_meal_id == meal_id).all()
+    for meal in children_meals:
+        meal.origin_meal_id = None
+        db.commit()
+        db.refresh(meal)
+
     return True
 
 @meals_router.delete("/saved/{meal_id}", response_model=schemas.AddResponse)
 def delete_saved_meal(meal_id: int, current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     db_item = db.query(models.SavedMeal).filter(models.SavedMeal.meal_id == meal_id).first()
+    #Removing all meals created from this saved one origin_meal_id
+    children_meals = db.query(models.Meal).filter(models.Meal.origin_meal_id == meal_id).all()
+    for meal in children_meals:
+        meal.origin_meal_id = None
+        db.commit()
+        db.refresh(meal)
+
     if(not db_item):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

@@ -28,6 +28,7 @@ class MealBase(BaseModel):
     picture: Optional[str] = None
     creation_date: Optional[datetime] = None
     products: Optional[List[ProductBase]] = None
+    origin_meal_id: Optional[int] = None
 
 class SavedMeal(BaseModel):
     id: Optional[int] = None
@@ -100,6 +101,7 @@ class MealCreate(BaseModel):
     meal_type_id: int = Field(...)
     picture: Optional[str] = None
     creation_date: Optional[datetime] = datetime.now()
+    origin_meal_id: Optional[int] = None
 
 class ProductCreate(BaseModel):
     title: str = Field(..., max_length=255)

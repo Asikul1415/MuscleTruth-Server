@@ -61,6 +61,7 @@ class Meal(Base):
     meal_type_id = Column(Integer, ForeignKey('meal_types.id'), nullable=False) 
     picture = Column(String(255))
     creation_date = Column(DateTime(timezone=True), default=datetime.astimezone(datetime.now()), nullable=False)
+    origin_meal_id = Column(Integer, nullable=True)
 
     user = relationship('User', back_populates='meals')
     meal_type = relationship('MealType', back_populates='meals')

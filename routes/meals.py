@@ -28,9 +28,8 @@ def get_meals(start_date:str = None, end_date: str = None, current_user: models.
         end = datetime.fromisoformat(end_date).date()
         
         db_items = db_items.filter(
-            func.date(models.Meal.creation_date) >= start).filter(
-            func.date(models.Meal.creation_date) <= end)
-
+            func.date(models.Meal.creation_date) >= start, func.date(models.Meal.creation_date) <= end)
+        
     if(not db_items):
         raise HTTPException(
             status_code=status.HTTP_204_NO_CONTENT,

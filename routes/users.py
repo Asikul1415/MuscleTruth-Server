@@ -58,13 +58,13 @@ def update_user_info(user: str = Form(...), image: UploadFile = File(None), curr
         paths = utils.save_image(image)
         image_path = paths
     
-    if(updated_user_info.name and len(updated_user_info.name) > 3):
+    if(updated_user_info.name and len(updated_user_info.name) >= 3):
         current_user.name = updated_user_info.name
-    if(updated_user_info.email and len(updated_user_info.email) > 5):
+    if(updated_user_info.email and len(updated_user_info.email) >= 6):
         current_user.email = updated_user_info.email
-    if(updated_user_info.password and len(updated_user_info.password) > 8):
+    if(updated_user_info.password and len(updated_user_info.password) >= 8):
         current_user.password = models.User.get_password_hash(updated_user_info.password)
-    if(updated_user_info.age and updated_user_info.age > 6 and updated_user_info.age < 130):
+    if(updated_user_info.age and updated_user_info.age >= 6 and updated_user_info.age <= 130):
         current_user.age = updated_user_info.age
     if(image_path):
         current_user.profile_picture = image_path

@@ -329,13 +329,12 @@ def update_meal(meal_id: int, meal: str = Form(...), image: UploadFile = File(No
     data_dict = json.loads(meal)
     meal_create = schemas.MealCreate(**data_dict)
 
-    image_path = None
     if image and image.filename:
-        paths = utils.save_image(image)
-        image_path = paths
+        image_path = utils.save_image(image)
+        db_item.picture = image_path
     
     db_item.meal_type_id = meal_create.meal_type_id
-    db_item.picture = image_path
+
 
     db.commit()
     db.refresh(db_item)
